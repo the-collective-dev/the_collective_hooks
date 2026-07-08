@@ -1,0 +1,25 @@
+# Vendorable into a PUBLIC repo as .github/workflows/fortknox-public-preflight.yml.
+# Runs the heuristics-only preflight (no IOC signatures) — safe for public repos
+# that the private org required-workflow can't gate. Make the `fortknox-preflight`
+# job a required status check in the repo's ruleset to enforce it.
+name: fortknox-public-preflight
+on:
+  push: { branches: [main] }
+  pull_request:
+permissions: { contents: read }
+concurrency:
+  group: fortknox-public-preflight-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  fortknox-preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        with:
+          egress-policy: audit
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+      - name: Fort Knox public preflight (heuristics only)
+        run: bash scripts/security/check-config-payloads-public.sh .
