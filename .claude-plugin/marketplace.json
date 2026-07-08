@@ -3,7 +3,7 @@
   "name": "collective",
   "owner": {
     "name": "The Collective",
-    "email": "travis@travismcelfresh.com"
+    "email": "travis@thecollectiveai.dev"
   },
   "description": "The Collective plugin marketplace — operator safety hooks and workflow skills for Claude Code.",
   "plugins": [
@@ -14,7 +14,7 @@
       "version": "0.1.0",
       "author": {
         "name": "The Collective",
-        "email": "travis@travismcelfresh.com"
+        "email": "travis@thecollectiveai.dev"
       }
     }
   ]

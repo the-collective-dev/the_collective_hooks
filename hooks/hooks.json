@@ -7,6 +7,17 @@
           {
             "type": "command",
             "command": "\"${CLAUDE_PLUGIN_ROOT}\"/hooks/pre-tool-use"
+          },
+          {
+            "type": "mcp_tool",
+            "server": "collective",
+            "tool": "collective_validate_command",
+            "input": {
+              "command": "${tool_input.command}",
+              "format": "hook"
+            },
+            "timeout": 20,
+            "statusMessage": "Validating against The Collective rules engine…"
           }
         ]
       },
