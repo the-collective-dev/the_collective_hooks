@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "collective",
+  "displayName": "The Collective",
+  "version": "0.1.0",
+  "description": "The Collective operator safety floor for Claude Code: a catastrophic-command denylist (rm -rf /, DROP DATABASE, fork bombs, force-push to protected branches, etc.) plus a protected-file guard, bundled with the c-* workflow skills. First cut ships the SAFETY floor only; telemetry and context hooks follow after H2 server-ification.",
+  "author": {
+    "name": "The Collective",
+    "email": "travis@travismcelfresh.com",
+    "url": "https://github.com/travismcelfresh/thecollective"
+  },
+  "homepage": "https://app.thecollectiveai.dev",
+  "repository": "https://github.com/travismcelfresh/thecollective",
+  "license": "UNLICENSED",
+  "keywords": [
+    "the-collective",
+    "safety",
+    "hooks",
+    "guardrails"
+  ],
+  "hooks": "./hooks/hooks.json",
+  "skills": "./skills/"
+}

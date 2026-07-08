@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
+  "name": "collective",
+  "owner": {
+    "name": "The Collective",
+    "email": "travis@travismcelfresh.com"
+  },
+  "description": "The Collective plugin marketplace — operator safety hooks and workflow skills for Claude Code.",
+  "plugins": [
+    {
+      "name": "collective",
+      "source": "./",
+      "description": "The Collective operator safety floor (catastrophic-command denylist + protected-file guard) plus the c-* workflow skills. Safety-only first cut; telemetry/context hooks to follow.",
+      "version": "0.1.0",
+      "author": {
+        "name": "The Collective",
+        "email": "travis@travismcelfresh.com"
+      }
+    }
+  ]
+}
