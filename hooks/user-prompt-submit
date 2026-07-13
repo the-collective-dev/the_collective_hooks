@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# ============================================================================
+# GENERATED FILE — DO NOT EDIT BY HAND.
+# Produced by plugin/scripts/generate-plugin-hooks.ts from the generators in
+# backend/src/mcp-server/utils/hookGenerators.ts (single source of truth).
+# Regenerate with: cd backend && npx tsx ../plugin/scripts/generate-plugin-hooks.ts
+# Project-ID-agnostic: generated with an empty projectId (safety floor is pure-local).
+# ============================================================================
+# .claude/hooks/user-prompt-submit (plugin — LOCAL-ONLY Claim Gate injection)
+# Prints the static Claim Gate / Truth Mode verification contract to stdout every
+# turn (plain UserPromptSubmit stdout is injected into the model's context, verified
+# on Claude Code 2.1.181). Pure-local: ZERO network egress, no token, no .mcp.json.
+# The contract text is the single source of truth from claimGate/contract.ts.
+cat <<'__CLAIM_GATE_CONTRACT__'
+
+[Claim Gate CG-1] Do not state implementation, production, billing, customer, auth, security, database, or deployment facts as verified unless a receipt exists in THIS session. Label claims [VERIFIED] (needs a receipt) / [INFERRED] / [ASSUMPTION] (must not drive action) / [UNKNOWN]. Unreceipted certainty is forbidden in ANY phrasing — example trigger words: done, fixed, verified, correct, live, prod, deployed, all, none, only, can't happen, will fire, won't fire.
+__CLAIM_GATE_CONTRACT__
+
+exit 0

@@ -11,7 +11,7 @@
       "name": "collective",
       "source": "./",
       "description": "The Collective operator safety floor (catastrophic-command denylist + protected-file guard) plus the c-* workflow skills. Safety-only first cut; telemetry/context hooks to follow.",
-      "version": "0.1.2",
+      "version": "0.1.3",
       "author": {
         "name": "The Collective",
         "email": "travis@thecollectiveai.dev"
