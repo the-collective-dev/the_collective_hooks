@@ -1,0 +1,83 @@
+#!/usr/bin/env bash
+# ============================================================================
+# GENERATED FILE — DO NOT EDIT BY HAND.
+# Produced by plugin/scripts/generate-plugin-hooks.ts from the generators in
+# backend/src/mcp-server/utils/hookGenerators.ts (single source of truth).
+# Regenerate with: cd backend && npx tsx ../plugin/scripts/generate-plugin-hooks.ts
+# Project-ID-agnostic: generated with an empty projectId (safety floor is pure-local).
+# ============================================================================
+# The Collective — commit-governance nudge (plugin).
+# LOCAL ONLY: no network, no .mcp.json, no credentials, zero egress. After a real git
+# commit it asks the agent to call collective_record_commit; the agent makes that call over
+# its own authenticated MCP session, so no token ever lives in this hook.
+#
+# Emits JSON hookSpecificOutput.additionalContext because PostToolUse plain stdout is NOT
+# injected into the model's context (verified live on Claude Code 2.1.210) — a plain echo
+# here would be a silent no-op.
+#
+# Fail-open everywhere: a nudge must never break a commit.
+set -uo pipefail
+
+command -v jq >/dev/null 2>&1 || exit 0
+
+input=$(cat 2>/dev/null || true)
+TOOL=$(printf '%s' "$input" | jq -r '.tool_name // empty' 2>/dev/null || true)
+[ "$TOOL" = "Bash" ] || exit 0
+
+COMMAND=$(printf '%s' "$input" | jq -r '.tool_input.command // empty' 2>/dev/null || true)
+[ -n "$COMMAND" ] || exit 0
+
+# A real commit only. Matches `git commit`/`git -C x commit`; skips --dry-run (creates
+# nothing) and log/show/rev-parse subcommands that merely contain the word "commit".
+echo "$COMMAND" | grep -qE '(^|[;&|[:space:]])git([[:space:]]+-[^[:space:]]+([[:space:]]+[^[:space:]]+)?)*[[:space:]]+commit([[:space:]]|$)' || exit 0
+echo "$COMMAND" | grep -qE '[-][-](dry-run|help)' && exit 0
+
+CWD=$(printf '%s' "$input" | jq -r '.cwd // empty' 2>/dev/null || true)
+[ -n "$CWD" ] || CWD="$PWD"
+cd "$CWD" 2>/dev/null || exit 0
+
+# Must be a git repo with a commit to report.
+ROOT=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0
+[ -n "$ROOT" ] || exit 0
+SHA=$(git rev-parse HEAD 2>/dev/null) || exit 0
+[ -n "$SHA" ] || exit 0
+
+# PROJECT-RELEVANCE GATE (Anthropic marketplace policy: has_broad_scope_hooks is an
+# auto-fail for a hook that fires on every tool call in every repo). Only speak inside a
+# Collective-governed project; stay silent everywhere else. Conservative on purpose — a
+# missed nudge costs one un-recorded commit, chattering in an unrelated repo is a defect.
+#
+# Deliberately does NOT sniff .mcp.json, for two reasons: it is a credential-bearing file
+# (the local-only floor never reads one), and under Clerk OAuth there IS no .mcp.json — the
+# very operators this hook exists for would never match that marker.
+governed=0
+if [ -f "$ROOT/CLAUDE.md" ] && grep -qiE 'the collective|collective_' "$ROOT/CLAUDE.md" 2>/dev/null; then governed=1; fi
+if [ "$governed" -eq 0 ] && [ -d "$ROOT/collective" ]; then governed=1; fi
+[ "$governed" -eq 1 ] || exit 0
+
+# Nudge once per commit. `git commit --amend` yields a NEW sha, so an amend is correctly
+# re-nudged; a repeated PostToolUse for the same HEAD is not. State is local, capped, and
+# lives under CLAUDE_PLUGIN_DATA — never the repo (it would show up in the operator's diff).
+STATE_DIR="${CLAUDE_PLUGIN_DATA:-$HOME/.collective}"
+STATE="$STATE_DIR/nudged-commits"
+if [ -f "$STATE" ] && grep -qxF "$SHA" "$STATE" 2>/dev/null; then exit 0; fi
+mkdir -p "$STATE_DIR" 2>/dev/null || true
+echo "$SHA" >> "$STATE" 2>/dev/null || true
+# Cap the file so it can't grow without bound on a long-lived machine.
+if [ -f "$STATE" ]; then tail -n 200 "$STATE" > "$STATE.tmp" 2>/dev/null && mv "$STATE.tmp" "$STATE" 2>/dev/null || true; fi
+
+SUBJECT=$(git log -1 --pretty=format:%s 2>/dev/null || true)
+
+jq -n --arg sha "$SHA" --arg subject "$SUBJECT" '{
+  hookSpecificOutput: {
+    hookEventName: "PostToolUse",
+    additionalContext: (
+      "[The Collective] Commit " + $sha[0:12] + " (\"" + $subject + "\") was just created. " +
+      "If it implements tracked deliverable work, call collective_record_commit with commitSha=\"" + $sha + "\" " +
+      "so the client portal records CODE_COMPLETE evidence and advances the matching acceptance criteria. " +
+      "It is idempotent per SHA and free. Skip it for chores/merges/docs that deliver nothing trackable."
+    )
+  }
+}' 2>/dev/null || true
+
+exit 0

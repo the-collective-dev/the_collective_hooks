@@ -17,7 +17,7 @@
               "format": "hook"
             },
             "timeout": 20,
-            "statusMessage": "Validating against The Collective rules engine…"
+            "statusMessage": "Validating against The Collective rules engine\u2026"
           }
         ]
       },
@@ -37,6 +37,17 @@
           {
             "type": "command",
             "command": "\"${CLAUDE_PLUGIN_ROOT}\"/hooks/user-prompt-submit"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/hooks/post-tool-use"
           }
         ]
       }

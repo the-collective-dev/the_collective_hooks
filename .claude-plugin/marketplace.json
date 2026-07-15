@@ -5,13 +5,13 @@
     "name": "The Collective",
     "email": "travis@thecollectiveai.dev"
   },
-  "description": "The Collective plugin marketplace \u2014 operator safety hooks and workflow skills for Claude Code.",
+  "description": "The Collective plugin marketplace — operator safety hooks and workflow skills for Claude Code.",
   "plugins": [
     {
       "name": "collective",
       "source": "./",
-      "description": "The Collective operator safety floor (catastrophic-command denylist + protected-file guard) plus the c-* workflow skills. Safety-only first cut; telemetry/context hooks to follow.",
-      "version": "0.1.3",
+      "description": "The Collective operator safety floor for Claude Code: a catastrophic-command denylist (recursive root deletion, DROP DATABASE, fork bombs, force-push to protected branches, etc.) plus a protected-file guard, bundled with the c-* workflow skills. Every hook runs locally with ZERO network egress and reads no credentials — a PreToolUse check on Bash commands, an Edit/Write guard on platform-safety files, a UserPromptSubmit claim-gate contract, and a PostToolUse check that, only inside a Collective-governed repo, reads the new commit SHA after a git commit and asks the agent to record it via the collective MCP server. This plugin never calls home on its own: every server call is made by the agent over your own authenticated MCP session.",
+      "version": "0.1.4",
       "author": {
         "name": "The Collective",
         "email": "travis@thecollectiveai.dev"

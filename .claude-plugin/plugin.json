@@ -2,15 +2,15 @@
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "collective",
   "displayName": "The Collective",
-  "version": "0.1.3",
-  "description": "The Collective operator safety floor for Claude Code: a catastrophic-command denylist (rm -rf /, DROP DATABASE, fork bombs, force-push to protected branches, etc.) plus a protected-file guard, bundled with the c-* workflow skills. First cut ships the SAFETY floor only; telemetry and context hooks follow after H2 server-ification.",
+  "version": "0.1.4",
+  "description": "The Collective operator safety floor for Claude Code: a catastrophic-command denylist (recursive root deletion, DROP DATABASE, fork bombs, force-push to protected branches, etc.) plus a protected-file guard, bundled with the c-* workflow skills. Every hook runs locally with ZERO network egress and reads no credentials — a PreToolUse check on Bash commands, an Edit/Write guard on platform-safety files, a UserPromptSubmit claim-gate contract, and a PostToolUse check that, only inside a Collective-governed repo, reads the new commit SHA after a git commit and asks the agent to record it via the collective MCP server. This plugin never calls home on its own: every server call is made by the agent over your own authenticated MCP session.",
   "author": {
     "name": "The Collective",
-    "email": "travis@thecollectiveai.dev",
-    "url": "https://github.com/the-collective-dev/the_collective_hooks"
+    "email": "travis@travismcelfresh.com",
+    "url": "https://github.com/travismcelfresh/thecollective"
   },
   "homepage": "https://app.thecollectiveai.dev",
-  "repository": "https://github.com/the-collective-dev/the_collective_hooks",
+  "repository": "https://github.com/travismcelfresh/thecollective",
   "license": "UNLICENSED",
   "keywords": [
     "the-collective",
