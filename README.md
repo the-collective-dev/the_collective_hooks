@@ -18,7 +18,7 @@ single command, with automatic updates through the plugin marketplace.
 |---|---|---|
 | Safety hook — Bash | `hooks/pre-tool-use` | `PreToolUse` on `Bash`. Client-side catastrophic-command denylist (`rm -rf /`, `DROP DATABASE`, fork bomb, `dd` to a raw disk, `mkfs`, recursive `chmod`/`chown` on `/`, force-push to `main`/`master`/`prod`, `_prisma_migrations` tampering), then server-side validation when configured. |
 | Safety hook — file guard | `hooks/safety-files-guard` | `PreToolUse` on `Edit\|Write\|MultiEdit`. Blocks direct edits to platform-safety files (`.claude/hooks/*`, `.mcp.json`, `.claude/settings.local.json`). |
-| Skills | `skills/c-*` | The 10 `c-*` workflow skills: `c-where`, `c-ready`, `c-objective`, `c-complete`, `c-sync`, `c-health`, `c-items`, `c-stale`, `c-assess`, `c-ship`. |
+| Skills | `skills/c-*` | The 10 `c-*` workflow skills: `c-where`, `c-ready`, `c-objective`, `c-complete`, `c-sync`, `c-session-health`, `c-items`, `c-stale`, `c-assess`, `c-ship`. |
 
 The two hook scripts are **generated** from the single source of truth in
 `backend/src/mcp-server/utils/hookGenerators.ts` via
