@@ -1,0 +1,41 @@
+# Reserved skill names — The Collective
+#
+# WHY THIS FILE EXISTS
+# Claude Code resolves skill name collisions silently, by load order. When two
+# installed sources ship a skill with the same `name:`, one wins and the other
+# is shadowed with no warning to the operator — they invoke a skill and get
+# someone else's behavior. The public plugin loads in a position that can shadow
+# a licensed method skill, so a collision is not a cosmetic problem: it is a
+# licensed deliverable silently replaced by a free one.
+#
+# CONTRACT
+# Every name in this file is claimed by the public plugin
+# (the-collective-dev/the_collective_hooks). No other Collective-authored
+# source — method repo, client-delivered skill pack, internal repo — may ship a
+# skill with one of these names. Adding a name here is a claim; removing one
+# releases it. This file is the list; CI in both repos fails the build on any
+# intersection between an installable skill set and this list (gate supplied by
+# the Fort Knox lane).
+#
+# FORMAT
+# One name per line, lowercase, matching the `name:` field in SKILL.md exactly.
+# Lines starting with # are comments. Keep alphabetical.
+
+c-assess
+c-complete
+c-items
+c-objective
+c-ready
+c-session-health
+c-ship
+c-stale
+c-sync
+c-where
+
+# RETIRED — do not reuse, do not re-claim without an explicit decision.
+# A retired name may still be typed from muscle memory by operators on an older
+# install; reusing it for different behavior is worse than leaving it dead.
+#
+# c-health — renamed to c-session-health (2026-07-27). It was a session/MCP
+#            connectivity diagnostic occupying the word "health", which the
+#            method corpus needs for Gate 5 (operate) health.

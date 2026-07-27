@@ -1,5 +1,5 @@
 ---
-name: c-health
+name: c-session-health
 description: Check session health and MCP connectivity. Use to verify The Collective is working properly.
 ---
 
