@@ -36,13 +36,13 @@ elif echo "$COMMAND" | grep -qE ':[(][)][[:space:]]*[{][[:space:]]*:[|]:[[:space
   DENY_REASON="Fork bomb"
 elif echo "$COMMAND" | grep -qE '(^|[^a-zA-Z0-9_-])dd[[:space:]]+.*of=/dev/(sd|disk|nvme|hd)'; then
   DENY_REASON="dd to raw disk device — irreversible data loss"
-elif echo "$COMMAND" | grep -qE 'mkfs[.][a-zA-Z0-9]+[[:space:]]+([^[:space:]]+[[:space:]]+)*(/dev/(sd|disk|nvme|hd)|/([[:space:]]|$))'; then
+elif echo "$COMMAND" | grep -qE 'mkfs([.][a-zA-Z0-9]+)?([[:space:]]+--?[a-zA-Z0-9][-a-zA-Z0-9]*)*([[:space:]]+[^[:space:]]+)*[[:space:]]+(/dev/(sd|disk|nvme|hd)|/([[:space:]]|$))'; then
   DENY_REASON="Filesystem reformat on a real disk device"
-elif echo "$COMMAND" | grep -qE 'chmod[[:space:]]+-R[[:space:]]+[0-9]+[[:space:]]+/([[:space:]]|$)'; then
+elif echo "$COMMAND" | grep -qE 'chmod([[:space:]]+--?[a-zA-Z0-9][-a-zA-Z0-9]*)*[[:space:]]+(-[a-zA-Z]*[rR][a-zA-Z]*|--recursive)([[:space:]]+--?[a-zA-Z0-9][-a-zA-Z0-9]*)*[[:space:]]+[a-zA-Z0-9+=,_-]+[[:space:]]+[^a-zA-Z0-9_/.-]?/([[:space:]]|$|[^a-zA-Z0-9_-])'; then
   DENY_REASON="Recursive chmod on root filesystem"
-elif echo "$COMMAND" | grep -qE 'chown[[:space:]]+-R[[:space:]]+[^[:space:]]+[[:space:]]+/([[:space:]]|$)'; then
+elif echo "$COMMAND" | grep -qE 'chown([[:space:]]+--?[a-zA-Z0-9][-a-zA-Z0-9]*)*[[:space:]]+(-[a-zA-Z]*[rR][a-zA-Z]*|--recursive)([[:space:]]+--?[a-zA-Z0-9][-a-zA-Z0-9]*)*[[:space:]]+[a-zA-Z0-9:._-]+[[:space:]]+[^a-zA-Z0-9_/.-]?/([[:space:]]|$|[^a-zA-Z0-9_-])'; then
   DENY_REASON="Recursive chown on root filesystem"
-elif echo "$COMMAND" | grep -qE 'git[[:space:]]+push[[:space:]]+(-f|--force(-with-lease(=[^[:space:]]+)?)?)([[:space:]]+[^[:space:]]+)*[[:space:]]+(main|master|prod|production)([[:space:]]|$)'; then
+elif echo "$COMMAND" | grep -qE 'git[[:space:]]+push([[:space:]]+[^[:space:]]+)*[[:space:]]+(-[a-zA-Z]*f[a-zA-Z]*|--force(-with-lease(=[^[:space:]]+)?)?)([[:space:]]+[^[:space:]]+)*[[:space:]]+([^[:space:]]*[:/])?(main|master|prod|production)([[:space:]]|$|[^a-zA-Z0-9_-])|git[[:space:]]+push([[:space:]]+[^[:space:]]+)*[[:space:]]+([^[:space:]]*[:/])?(main|master|prod|production)([[:space:]]+[^[:space:]]+)*[[:space:]]+(-[a-zA-Z]*f[a-zA-Z]*|--force(-with-lease(=[^[:space:]]+)?)?)([[:space:]]|$)'; then
   DENY_REASON="Force-push to a protected branch (main/master/prod)"
 elif echo "$COMMAND" | grep -iqE 'drop[[:space:]]+database'; then
   DENY_REASON="DROP DATABASE — entire database deletion"
