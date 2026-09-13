@@ -28,9 +28,9 @@ if [ -z "$COMMAND" ]; then exit 0; fi
 
 DENY_REASON=""
 
-if echo "$COMMAND" | grep -qE 'rm([[:space:]]+--?[a-zA-Z0-9][-a-zA-Z0-9]*)*[[:space:]]+(-[a-zA-Z]*[rR][a-zA-Z]*[fF][a-zA-Z]*|-[a-zA-Z]*[fF][a-zA-Z]*[rR][a-zA-Z]*|--recursive[[:space:]]+--force|--force[[:space:]]+--recursive)([[:space:]]+--?[a-zA-Z0-9][-a-zA-Z0-9]*)*[[:space:]]+[^a-zA-Z0-9_/.-]?/([[:space:]]|$|[^a-zA-Z0-9_-])'; then
+if echo "$COMMAND" | grep -qE 'rm([[:space:]]+--?[a-zA-Z0-9][-a-zA-Z0-9]*)*[[:space:]]+(-[a-zA-Z]*[rR][a-zA-Z]*[fF][a-zA-Z]*|-[a-zA-Z]*[fF][a-zA-Z]*[rR][a-zA-Z]*|--recursive[[:space:]]+--force|--force[[:space:]]+--recursive)([[:space:]]+--?[a-zA-Z0-9][-a-zA-Z0-9]*)*[[:space:]]+[^a-zA-Z0-9_/.~-]?/([[:space:]]|$|[^a-zA-Z0-9_-])'; then
   DENY_REASON="Recursive deletion of root filesystem"
-elif echo "$COMMAND" | grep -qE '[$]HOME/[.][.]'; then
+elif echo "$COMMAND" | grep -qE '([$]HOME|[$][{]HOME[}]|~)(/[^[:space:]]*)?/[.][.]([[:space:]/]|$|[^a-zA-Z0-9_.-])'; then
   DENY_REASON="Recursive deletion of home parent"
 elif echo "$COMMAND" | grep -qE ':[(][)][[:space:]]*[{][[:space:]]*:[|]:[[:space:]]*&[[:space:]]*[}][[:space:]]*;[[:space:]]*:'; then
   DENY_REASON="Fork bomb"
@@ -38,15 +38,15 @@ elif echo "$COMMAND" | grep -qE '(^|[^a-zA-Z0-9_-])dd[[:space:]]+.*of=/dev/(sd|d
   DENY_REASON="dd to raw disk device — irreversible data loss"
 elif echo "$COMMAND" | grep -qE 'mkfs([.][a-zA-Z0-9]+)?([[:space:]]+--?[a-zA-Z0-9][-a-zA-Z0-9]*)*([[:space:]]+[^[:space:]]+)*[[:space:]]+(/dev/(sd|disk|nvme|hd)|/([[:space:]]|$))'; then
   DENY_REASON="Filesystem reformat on a real disk device"
-elif echo "$COMMAND" | grep -qE 'chmod([[:space:]]+--?[a-zA-Z0-9][-a-zA-Z0-9]*)*[[:space:]]+(-[a-zA-Z]*[rR][a-zA-Z]*|--recursive)([[:space:]]+--?[a-zA-Z0-9][-a-zA-Z0-9]*)*[[:space:]]+[a-zA-Z0-9+=,_-]+[[:space:]]+[^a-zA-Z0-9_/.-]?/([[:space:]]|$|[^a-zA-Z0-9_-])'; then
+elif echo "$COMMAND" | grep -qE 'chmod([[:space:]]+--?[a-zA-Z0-9][-a-zA-Z0-9]*)*[[:space:]]+(-[a-zA-Z]*[rR][a-zA-Z]*|--recursive)([[:space:]]+--?[a-zA-Z0-9][-a-zA-Z0-9]*)*[[:space:]]+[a-zA-Z0-9+=,_-]+[[:space:]]+[^a-zA-Z0-9_/.~-]?/([[:space:]]|$|[^a-zA-Z0-9_-])'; then
   DENY_REASON="Recursive chmod on root filesystem"
-elif echo "$COMMAND" | grep -qE 'chown([[:space:]]+--?[a-zA-Z0-9][-a-zA-Z0-9]*)*[[:space:]]+(-[a-zA-Z]*[rR][a-zA-Z]*|--recursive)([[:space:]]+--?[a-zA-Z0-9][-a-zA-Z0-9]*)*[[:space:]]+[a-zA-Z0-9:._-]+[[:space:]]+[^a-zA-Z0-9_/.-]?/([[:space:]]|$|[^a-zA-Z0-9_-])'; then
+elif echo "$COMMAND" | grep -qE 'chown([[:space:]]+--?[a-zA-Z0-9][-a-zA-Z0-9]*)*[[:space:]]+(-[a-zA-Z]*[rR][a-zA-Z]*|--recursive)([[:space:]]+--?[a-zA-Z0-9][-a-zA-Z0-9]*)*[[:space:]]+[a-zA-Z0-9:._-]+[[:space:]]+[^a-zA-Z0-9_/.~-]?/([[:space:]]|$|[^a-zA-Z0-9_-])'; then
   DENY_REASON="Recursive chown on root filesystem"
 elif echo "$COMMAND" | grep -qE 'git[[:space:]]+push([[:space:]]+[^[:space:]]+)*[[:space:]]+(-[a-zA-Z]*f[a-zA-Z]*|--force(-with-lease(=[^[:space:]]+)?)?)([[:space:]]+[^[:space:]]+)*[[:space:]]+([^[:space:]]*[:/])?(main|master|prod|production)([[:space:]]|$|[^a-zA-Z0-9_-])|git[[:space:]]+push([[:space:]]+[^[:space:]]+)*[[:space:]]+([^[:space:]]*[:/])?(main|master|prod|production)([[:space:]]+[^[:space:]]+)*[[:space:]]+(-[a-zA-Z]*f[a-zA-Z]*|--force(-with-lease(=[^[:space:]]+)?)?)([[:space:]]|$)'; then
   DENY_REASON="Force-push to a protected branch (main/master/prod)"
 elif echo "$COMMAND" | grep -iqE 'drop[[:space:]]+database'; then
   DENY_REASON="DROP DATABASE — entire database deletion"
-elif echo "$COMMAND" | grep -iqE '(delete[[:space:]]+from|truncate|drop[[:space:]]+table)[[:space:]]+_prisma_migrations'; then
+elif echo "$COMMAND" | grep -iqE '(delete[[:space:]]+from|truncate([[:space:]]+table)?|drop[[:space:]]+table)[[:space:]]+([a-zA-Z0-9_]+[.])?_prisma_migrations'; then
   DENY_REASON="Tampering with _prisma_migrations table — schema state corruption"
 fi
 
