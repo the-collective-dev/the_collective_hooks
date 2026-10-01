@@ -80,7 +80,8 @@ if [ -f "$STATE" ]; then tail -n 200 "$STATE" > "$STATE.tmp" 2>/dev/null && mv "
 #      enormous one is either a mistake or an attempt to bury the fence
 #   2. move it OUT of the instruction into a fenced, explicitly-labelled block
 #      at the end, so the instruction stands alone and the data is marked data
-SUBJECT=$(git log -1 --pretty=format:%s 2>/dev/null | tr -d '\000-\037' | cut -c1-120 || true)
+# Collapse runs of 5+ dashes so the subject can never spell a fence marker (#2562).
+SUBJECT=$(git log -1 --pretty=format:%s 2>/dev/null | tr -d '\000-\037' | sed 's/-\{5,\}/-/g' | cut -c1-120 || true)
 
 jq -n --arg sha "$SHA" --arg subject "$SUBJECT" '{
   hookSpecificOutput: {
