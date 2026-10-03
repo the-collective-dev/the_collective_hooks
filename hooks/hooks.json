@@ -50,6 +50,15 @@
             "command": "\"${CLAUDE_PLUGIN_ROOT}\"/hooks/post-tool-use"
           }
         ]
+      },
+      {
+        "matcher": "Artifact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/hooks/artifact-mirror"
+          }
+        ]
       }
     ]
   }
