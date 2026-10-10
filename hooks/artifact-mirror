@@ -9,8 +9,10 @@
 # The Collective — artifact-mirror nudge (plugin).
 # After a claude.ai Artifact publish, asks the agent to copy the page into The Collective
 # (collective_artifact_mirror) so a lane on another claude.ai account can read it.
-# LOCAL ONLY: reads the published local file for size/hash/title; no network, no
-# .mcp.json, no credentials. The agent makes the call over its own MCP session.
+# LOCAL ONLY: this script reads the published local file for size/hash/title, makes no
+# network call and reads no .mcp.json and no credentials. The agent then sends the
+# artifact's full text, URL and title (and the signed-in account if known) to the
+# collective server, over its own MCP session.
 # Emits JSON hookSpecificOutput.additionalContext (PostToolUse plain stdout is NOT injected).
 # Fail-open everywhere.
 set -uo pipefail
