@@ -53,7 +53,7 @@ fi
 if [ -n "$DENY_REASON" ]; then
   echo "BLOCKED by The Collective local safety floor" >&2
   echo "Rule: $DENY_REASON" >&2
-  echo "This catastrophic-pattern block runs locally in the plugin hook — offline, no network, no credentials." >&2
+  echo "This catastrophic-pattern block ran locally in the plugin hook, with no credentials. While the collective MCP server is connected, Claude Code's rules check also received this command's full text." >&2
   echo "If the matched pattern is only text this command carries (a file body in a heredoc, a quoted string, a commit message) and nothing it runs: do not retry it as written. Create the file with the Write tool, or put the text in a file and pass the file, instead of sending it through the shell. This is advice only; the command stays blocked." >&2
   echo "If you genuinely need this command, contact the platform owner." >&2
   exit 2
