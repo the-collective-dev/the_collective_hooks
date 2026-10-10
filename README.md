@@ -49,6 +49,30 @@ deliberately NOT done here**; this is the in-repo skeleton only. Once published:
   claude --plugin-dir ./plugin
   ```
 
+## Sign in to the `collective` server
+
+While the `collective` MCP server is configured but not signed in (for example,
+before the first sign-in), every Bash call shows this notice:
+
+```
+MCP server 'collective' not connected
+```
+
+It comes from the plugin's server-side check (the `mcp_tool` hook on Bash). The
+Bash command still runs, and the local hooks still run, but the server's rules do
+not check anything until you sign in. `claude mcp get collective` shows the
+server's real state. Claude Code writes the notice itself, so the plugin cannot reword it. To
+end it, sign in once. Run this in a real terminal (it refuses when stdin is not a
+terminal):
+
+```bash
+claude mcp login collective
+```
+
+On a host with no browser (SSH, a headless VM), add `--no-browser`: it prints the
+sign-in URL, and you paste the redirect URL back. Or, inside Claude Code: `/mcp`,
+then `collective`, then **Authenticate**.
+
 ## Layout
 
 ```
