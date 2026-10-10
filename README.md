@@ -59,8 +59,9 @@ MCP server 'collective' not connected
 ```
 
 It comes from the plugin's server-side check (the `mcp_tool` hook on Bash). The
-Bash command still runs, and the local hooks still run; only the server check is
-skipped. Claude Code writes the notice itself, so the plugin cannot reword it. To
+Bash command still runs, and the local hooks still run, but the server's rules do
+not check anything until you sign in. `claude mcp get collective` shows the
+server's real state. Claude Code writes the notice itself, so the plugin cannot reword it. To
 end it, sign in once. Run this in a real terminal (it refuses when stdin is not a
 terminal):
 
