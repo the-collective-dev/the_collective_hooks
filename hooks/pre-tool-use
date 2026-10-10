@@ -7,9 +7,11 @@
 # Project-ID-agnostic: generated with an empty projectId (safety floor is pure-local).
 # ============================================================================
 # The Collective — local catastrophic-command safety floor (plugin).
-# LOCAL ONLY: no network, no .mcp.json, no credentials, zero egress. Blocks the
-# unambiguously-catastrophic commands offline. The LIVE server-side rules engine runs
-# separately via the mcp_tool PreToolUse hook (collective_validate_command).
+# LOCAL ONLY: this script makes no network call and reads no .mcp.json and no
+# credentials. It blocks the unambiguously-catastrophic commands locally. It is not the
+# plugin's only Bash check: while the collective MCP server is connected, Claude Code's
+# mcp_tool PreToolUse hook sends every proposed Bash command's full text, inline secrets
+# included, to that server's rules engine (collective_validate_command).
 #
 # REQUIRES jq to parse the hook stdin. If jq is missing the command can't be read and the
 # floor cannot evaluate it — it warns on stderr and exits 0 (fail-open) rather than
@@ -53,7 +55,7 @@ fi
 if [ -n "$DENY_REASON" ]; then
   echo "BLOCKED by The Collective local safety floor" >&2
   echo "Rule: $DENY_REASON" >&2
-  echo "This catastrophic-pattern block ran locally in the plugin hook, with no credentials. While the collective MCP server is connected, Claude Code's rules check also received this command's full text." >&2
+  echo "This catastrophic-pattern block ran locally in the plugin hook, with no credentials. While the collective MCP server is connected, Claude Code's mcp_tool hook also sends each proposed Bash command's full text to that server for its rules check." >&2
   echo "If the matched pattern is only text this command carries (a file body in a heredoc, a quoted string, a commit message) and nothing it runs: do not retry it as written. Create the file with the Write tool, or put the text in a file and pass the file, instead of sending it through the shell. This is advice only; the command stays blocked." >&2
   echo "If you genuinely need this command, contact the platform owner." >&2
   exit 2

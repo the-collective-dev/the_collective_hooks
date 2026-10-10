@@ -9,7 +9,8 @@
 # .claude/hooks/user-prompt-submit (plugin — LOCAL-ONLY Claim Gate injection)
 # Prints the static Claim Gate / Truth Mode verification contract to stdout every
 # turn (plain UserPromptSubmit stdout is injected into the model's context, verified
-# on Claude Code 2.1.181). Pure-local: ZERO network egress, no token, no .mcp.json.
+# on Claude Code 2.1.181). Pure-local: this script makes no network call and reads no
+# token and no .mcp.json.
 # The contract text is the single source of truth from claimGate/contract.ts.
 cat <<'__CLAIM_GATE_CONTRACT__'
 

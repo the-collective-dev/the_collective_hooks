@@ -7,9 +7,10 @@
 # Project-ID-agnostic: generated with an empty projectId (safety floor is pure-local).
 # ============================================================================
 # The Collective — acceptance-evidence nudge (plugin).
-# LOCAL ONLY: no network, no .mcp.json, no credentials, zero egress. After a real git
-# commit whose message carries an ac:<id> tag it asks the agent to call
-# collective_record_commit; the agent makes that call over its own authenticated MCP
+# LOCAL ONLY: this script makes no network call and reads no .mcp.json and no
+# credentials. After a real git commit whose message carries an ac:<id> tag it asks the
+# agent to call collective_record_commit, which sends that commit's SHA, subject and tags
+# to the collective server; the agent makes that call over its own authenticated MCP
 # session, so no token ever lives in this hook. Every other commit passes in silence: the
 # GitHub webhook records default-branch commits without the session.
 #
