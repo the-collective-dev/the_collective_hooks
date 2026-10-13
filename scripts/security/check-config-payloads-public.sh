@@ -38,6 +38,49 @@ set -euo pipefail
 LC_ALL=C
 export LC_ALL
 
+PUB_SELF_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)
+# ---- exact-path prunes ----
+# fk_build_prune <root> <self-dir> [dir-name...] sets FK_PRUNE to a find expression that skips ONLY:
+#   - <root>/.git;
+#   - this scanner's own files, signature data (5 files by NAME, never the directory) and fixtures (only while git
+#     tracks nothing there), at their exact paths, when the scanner lives inside <root> (a vendored copy);
+#   - a consumer's vendored copy at <root>/scripts/security/, file by file, only when byte-identical to this
+#     scanner's copy (the central preflight scans the caller's workspace from outside it);
+#   - each directory named in [dir-name...] (node_modules, build output) only while git tracks nothing under it:
+#     a payload committed there is scanned. A tree that is not a git repo counts as untracked (the old behaviour).
+# <root> and <self-dir> must be canonical absolute paths (pwd -P), and every find must start at <root> as given.
+FK_SCANNERS=(check-executable-config-payloads.sh check-known-iocs.sh check-config-payloads-public.sh)
+FK_SIG_FILES=(README.md fixed-strings.txt known-bad-sha256.txt patterns.txt review-strings.txt suspect-sha256.txt)
+# Paths are data, never patterns: git reads them as literal pathspecs (a directory named ':(attr:x)zz' or '[z]z' is
+# not pathspec magic or a glob), and find -path gets them glob-escaped (a root holding '*', '?' or '[' matches only
+# itself).
+fk_tracked() { [ -n "$(git --literal-pathspecs -C "$1" ls-files -- "$2" 2>/dev/null | head -1)" ]; }
+fk_pat() { local s=${1//\\/\\\\}; s=${s//\*/\\*}; s=${s//\?/\\?}; printf '%s' "${s//\[/\\[}"; }
+fk_build_prune() {
+  local root=$1 self=$2 f d; shift 2
+  local p=( -path "$(fk_pat "$root/.git")" )
+  case "$self/" in
+    "$root"/*)
+      for f in "${FK_SCANNERS[@]}"; do p+=( -o -path "$(fk_pat "$self/$f")" ); done
+      for f in "${FK_SIG_FILES[@]}"; do p+=( -o -path "$(fk_pat "$self/fortknox-ioc-signatures.d/$f")" ); done
+      fk_tracked "$root" "$self/fixtures" || p+=( -o -path "$(fk_pat "$self/fixtures")" ) ;;
+  esac
+  for f in "${FK_SCANNERS[@]}" "${FK_SIG_FILES[@]/#/fortknox-ioc-signatures.d/}"; do
+    [ -f "$self/$f" ] && [ -f "$root/scripts/security/$f" ] && cmp -s -- "$self/$f" "$root/scripts/security/$f" \
+      && p+=( -o -path "$(fk_pat "$root/scripts/security/$f")" )
+  done
+  if [ $# -gt 0 ]; then
+    local names=( -name "$1" ); shift
+    for d in "$@"; do names+=( -o -name "$d" ); done
+    while IFS= read -r -d '' d; do
+      fk_tracked "$root" "${d#"$root"/}" || p+=( -o -path "$(fk_pat "$d")" )
+    done < <(find "$root" -path "$(fk_pat "$root/.git")" -prune -o -type d \( "${names[@]}" \) -print0 -prune 2>/dev/null)
+  fi
+  FK_PRUNE=( \( "${p[@]}" \) -prune )
+}
+# ---- end exact-path prunes ----
+SCAN_PRUNE=(); CFG_PRUNE=()   # set by scan() once its root is canonical
+
 FAILS=0; WARNS=0; STRICT=0
 fail() { echo "::error file=$1,line=$2::FORTKNOX: $3"; FAILS=$((FAILS+1)); }
 warn() { echo "::warning file=$1,line=$2::FORTKNOX: $3"; WARNS=$((WARNS+1)); }
@@ -72,14 +115,13 @@ _symlink_target_if_safe() {
 }
 scan_files() {  # $1=root ; rest=grep args. Excludes the scanner's own source (self-match guard).
   local root="$1"; shift
-  find "$root" \( -name .git -o -name node_modules \) -prune -o -type f ! -name 'check-config-payloads-public.sh' \
+  find "$root" "${SCAN_PRUNE[@]}" -o -type f \
     -exec grep "$@" -- {} + 2>/dev/null || true
   local l tgt
   while IFS= read -r -d '' l; do
-    case "$l" in */check-config-payloads-public.sh) continue ;; esac
     tgt=$(_symlink_target_if_safe "$l") || continue
     grep "$@" -- "$tgt" 2>/dev/null | sed "s#^${tgt}:#${l}:#" || true
-  done < <(find "$root" \( -name .git -o -name node_modules \) -prune -o -type l -print0 2>/dev/null)
+  done < <(find "$root" "${SCAN_PRUNE[@]}" -o -type l -print0 2>/dev/null)
 }
 
 # Bidi Trojan-Source overrides: U+202A-E (E2 80 AA-AE), U+2066-9 (E2 81 A6-A9).
@@ -89,8 +131,7 @@ BIDI_RE=$'\xe2\x80[\xaa-\xae]|\xe2\x81[\xa6-\xa9]'
 
 # Executable-config surface (where an injected payload hides + auto-runs).
 config_files() {  # $1 = root ; prints NUL-separated paths
-  find "$1" \( -name .git -o -name node_modules -o -name dist -o -name build \
-      -o -name .next -o -name coverage -o -name target \) -prune -o \
+  find "$1" "${CFG_PRUNE[@]}" -o \
     \( -name '*.config.js' -o -name '*.config.cjs' -o -name '*.config.mjs' \
        -o -name '*.config.ts' -o -name '*.config.mts' -o -name '*.config.cts' \
        -o -name 'next.config.*' -o -name 'postcss.config.*' \
@@ -103,6 +144,10 @@ scan() {
   local root="${1:-.}" f l hits
   echo "FORTKNOX public preflight: scanning $root (heuristics only, no signatures)"
   ROOT_ABS=$(cd "$root" 2>/dev/null && pwd -P)   # canonical root for the symlink-target in-root check
+  # Exact-path prunes: every find starts at the canonical root so they match its spelling.
+  root="$ROOT_ABS"
+  fk_build_prune "$root" "$PUB_SELF_DIR" node_modules; SCAN_PRUNE=( "${FK_PRUNE[@]}" )
+  fk_build_prune "$root" "$PUB_SELF_DIR" node_modules dist build .next coverage target; CFG_PRUNE=( "${FK_PRUNE[@]}" )
 
   # ---- executable-config heuristics ----
   while IFS= read -r -d '' f; do
@@ -125,7 +170,7 @@ scan() {
     symlink_safe_or_warn "$f" || continue   # -type l: only follow an in-repo regular-file target
     hits=$(grep -nHE '"(preinstall|install|postinstall|prepare|prepublish|prepublishOnly)"[[:space:]]*:' -- "$f" 2>/dev/null || true)
     [ -n "$hits" ] && warn "$f" "$(echo "$hits"|head -1|cut -d: -f1)" "package.json lifecycle hook (runs on npm install) — review it"
-  done < <(find "$root" \( -name node_modules -o -name .git \) -prune -o \( -type f -o -type l \) -name 'package.json' -print0 2>/dev/null)
+  done < <(find "$root" "${SCAN_PRUNE[@]}" -o \( -type f -o -type l \) -name 'package.json' -print0 2>/dev/null)
 
   # ---- repo-wide: curl|sh, bidi ----
   # exclude the scanner's own source so its detector patterns don't self-match
