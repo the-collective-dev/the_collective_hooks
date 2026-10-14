@@ -7,12 +7,16 @@
 # Project-ID-agnostic: generated with an empty projectId (safety floor is pure-local).
 # ============================================================================
 # The Collective — acceptance-evidence nudge (plugin).
-# LOCAL ONLY: this script makes no network call and reads no .mcp.json and no
-# credentials. After a real git commit whose message carries an ac:<id> tag it asks the
-# agent to call collective_record_commit, which sends that commit's SHA, subject and tags
-# to the collective server; the agent makes that call over its own authenticated MCP
-# session, so no token ever lives in this hook. Every other commit passes in silence: the
-# GitHub webhook records default-branch commits without the session.
+# LOCAL ONLY: This script makes no network call and reads no .mcp.json and no credentials.
+# After a git commit whose message carries an ac:<id> tag, it asks the agent to call
+# collective_record_commit, which sends that commit's SHA, subject and tags to the
+# collective server while it is connected, over the agent's own authenticated MCP session.
+# No token ever lives in this hook. It reads the new commit's SHA and message (git) and
+# the repo's CLAUDE.md, to tell whether the repo is Collective-governed. It keeps local
+# state: the commit SHAs it has handled, in $CLAUDE_PLUGIN_DATA/nudged-commits, or
+# $HOME/.collective/nudged-commits when CLAUDE_PLUGIN_DATA is unset (the last 200
+# entries). Every other commit passes in silence: the GitHub webhook records
+# default-branch commits without the session.
 #
 # Emits JSON hookSpecificOutput.additionalContext because PostToolUse plain stdout is NOT
 # injected into the model's context (verified live on Claude Code 2.1.210) — a plain echo
